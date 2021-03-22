@@ -19,6 +19,31 @@
                 placeholder="Например DOGE"
               />
             </div>
+            <div class="flex bg-white p-1 rounded-md shadow-md flex-wrap">
+              <span
+                class="inline-flex items-center px-2 m-1 rounded-md text-xs font-medium bg-gray-300 text-gray-800 cursor-pointer"
+              >
+                BTC
+              </span>
+              <span
+                class="inline-flex items-center px-2 m-1 rounded-md text-xs font-medium bg-gray-300 text-gray-800 cursor-pointer"
+              >
+                DOGE
+              </span>
+              <span
+                class="inline-flex items-center px-2 m-1 rounded-md text-xs font-medium bg-gray-300 text-gray-800 cursor-pointer"
+              >
+                BCH
+              </span>
+              <span
+                class="inline-flex items-center px-2 m-1 rounded-md text-xs font-medium bg-gray-300 text-gray-800 cursor-pointer"
+              >
+                CHD
+              </span>
+            </div>
+            <div v-if="!uniqueTicker" class="text-sm text-red-600">
+              Такой тикер уже добавлен
+            </div>
           </div>
         </div>
         <button
@@ -158,6 +183,7 @@ export default {
     return {
       ticker: "",
       tickers: [],
+      uniqueTicker: true,
       selectedTicker: null,
       graph: [],
       page: 1,
@@ -177,14 +203,6 @@ export default {
         this[key] = windowData[key];
       }
     });
-
-    // if (windowData.filter) {
-    //   this.filter = windowData.filter;
-    // }
-
-    // if (windowData.page) {
-    //   this.page = windowData.page;
-    // }
 
     const tickersData = localStorage.getItem("cryptonomicon-list");
 
@@ -247,6 +265,9 @@ export default {
       this.tickers
         .filter((t) => t.name === tickerName)
         .forEach((t) => {
+          if (t === this.selectedTicker) {
+            this.graph.push(price);
+          }
           t.price = price;
         });
     },
@@ -265,12 +286,23 @@ export default {
         price: "-",
       };
 
-      this.tickers = [...this.tickers, currentTicker];
+      const unique = this.tickers.filter(
+        (ticker) =>
+          ticker.name.toUpperCase() == currentTicker.name.toUpperCase()
+      );
+
+      if (unique.length === 0) {
+        this.tickers = [...this.tickers, currentTicker];
+        subscribeToTicker(currentTicker.name, (newPrice) =>
+          this.updateTicker(currentTicker.name, newPrice)
+        );
+        this.uniqueTicker = true;
+      } else {
+        this.uniqueTicker = false;
+      }
+
       this.ticker = "";
       this.filter = "";
-      subscribeToTicker(currentTicker.name, (newPrice) =>
-        this.updateTicker(currentTicker.name, newPrice)
-      );
     },
 
     select(ticker) {
