@@ -95,8 +95,10 @@
             @click="select(t)"
             :class="{
               'border-4': selectedTicker === t,
+              'bg-red-100': formatPrice(t.price) === undefined,
+              'bg-white': formatPrice(t.price) !== undefined,
             }"
-            class="bg-white overflow-hidden shadow rounded-lg border-purple-800 border-solid cursor-pointer"
+            class="overflow-hidden shadow rounded-lg border-purple-800 border-solid cursor-pointer"
           >
             <div class="px-4 py-5 sm:p-6 text-center">
               <dt class="text-sm font-medium text-gray-500 truncate">
@@ -297,8 +299,8 @@ export default {
     },
 
     formatPrice(price) {
-      if (price === "-") {
-        return price;
+      if (price === "-" || price === undefined) {
+        return undefined;
       }
 
       return price > 1 ? (price * 1).toFixed(2) : (price * 1).toPrecision(2);
@@ -307,7 +309,7 @@ export default {
     add() {
       const currentTicker = {
         name: this.ticker,
-        price: "-",
+        price: undefined,
       };
 
       const unique = this.tickers.filter(
@@ -347,6 +349,8 @@ export default {
   watch: {
     selectedTicker() {
       this.graph = [];
+
+      this.$nextTick().then(this.calculateMaxGraphElements);
     },
 
     tickers() {
